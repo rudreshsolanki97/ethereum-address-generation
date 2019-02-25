@@ -25,7 +25,7 @@ Generator Point:
 0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8)
 Step 4 : Concatenate (X,Y)
 Stpe 5 : Get hash by using Keccak256 ( legacy )
-Step 6 :
+Step 6 : address = last 20 bytes of hash bytes slice.
 */
 
 func main() {
