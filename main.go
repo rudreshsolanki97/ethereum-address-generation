@@ -59,8 +59,8 @@ func main() {
 	d.Write(publicKeyBytes)
 	hash := d.Sum(nil)
 	hashString := hex.EncodeToString(hash)
-	fmt.Printf("Keccak256 hash: %s", hashString)
+	fmt.Printf("Keccak256 hash: %s\n", hashString)
 
-	address := hex.EncodeToString(hash[len(hash)-19:])
+	address := hex.EncodeToString(hash[len(hash)-20:])
 	fmt.Printf("Address of Public Key: %s \n", address)
 }
