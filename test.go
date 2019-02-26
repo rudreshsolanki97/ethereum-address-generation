@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"strings"
 	"time"
-	"unicode"
 
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 	"golang.org/x/crypto/sha3"
@@ -59,31 +57,8 @@ func main() {
 	d.Write(publicKeyBytes)
 	hash := d.Sum(nil)
 	hashString := hex.EncodeToString(hash)
-	fmt.Printf("Keccak256 hash: %s\n", hashString)
+	fmt.Printf("Keccak256 hash: %s", hashString)
 
-	address := hex.EncodeToString(hash[len(hash)-20:])
+	address := hex.EncodeToString(hash[len(hash)-19:])
 	fmt.Printf("Address of Public Key: %s \n", address)
-
-	d = sha3.NewLegacyKeccak256()
-	d.Write([]byte(address))
-	addressHash := d.Sum(nil)
-	addressHashString := hex.EncodeToString(addressHash)
-	fmt.Printf("Address Keccak Hash :  %s\n", addressHashString)
-	addressHashRune := []rune(addressHashString)
-	addressRune := []rune(address)
-	addressRune55 := []rune{}
-	for i, val := range addressRune {
-		value := 0
-		if unicode.IsLetter(val) {
-			value = int(addressHashRune[i]) - 87
-		} else {
-			value = int(addressHashRune[i]) - 48
-		}
-		if value > 9 {
-			addressRune55 = append(addressRune55, []rune(strings.ToUpper(string(val)))[0])
-		} else {
-			addressRune55 = append(addressRune55, val)
-		}
-	}
-	fmt.Printf("EIP-55 encoded address:%s\n", string(addressRune55))
 }
