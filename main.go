@@ -28,11 +28,13 @@ Step 6 : address = last 20 bytes of hash bytes slice.
 */
 
 func main() {
-	privateKey := generatePrivateKey()
-	publicKey := generatePublicKeyFromPrivateKey(privateKey)
-	address := generateAddressFromPublicKey(publicKey)
-	address55 := encodeEIP55(address)
-	fmt.Printf("Is address valid: %t\n", isValidAddress(address55))
+	// privateKey := generatePrivateKey()
+	// publicKey := generatePublicKeyFromPrivateKey(privateKey)
+	// address := generateAddressFromPublicKey(publicKey)
+	// address55 := encodeEIP55(address)
+	// fmt.Printf("Is address valid: %t\n", isValidAddress(address55))
+	prefix := "abcd"
+	generateWithPrefix(prefix)
 }
 
 func isValidAddress(address string) bool {
@@ -76,11 +78,11 @@ func generatePrivateKey() []byte {
 	privateKey := make([]byte, 32)
 	_, err := newRand.Read(privateKey)
 	if err != nil {
-		panic(err)
+		return nil
 	}
 	privateKeyHex := make([]byte, hex.EncodedLen(len(privateKey)))
 	hex.Encode(privateKeyHex, privateKey)
-	fmt.Printf("Private Key generated: %s \n\n", privateKeyHex)
+	// fmt.Printf("Private Key generated: %s \n\n", privateKeyHex)
 	return privateKey
 }
 
@@ -91,9 +93,9 @@ func generatePublicKeyFromPrivateKey(privateKey []byte) string {
 	hexX := fmt.Sprintf("%x", x)
 	hexY := fmt.Sprintf("%x", y)
 	publicKey := hexX + hexY
-	fmt.Printf("X: %s\n", hexX)
-	fmt.Printf("Y: %s\n", hexY)
-	fmt.Printf("Public Key: %s\n\n", publicKey)
+	// fmt.Printf("X: %s\n", hexX)
+	// fmt.Printf("Y: %s\n", hexY)
+	// fmt.Printf("Public Key: %s\n\n", publicKey)
 	return publicKey
 }
 
@@ -101,12 +103,12 @@ func generateAddressFromPublicKey(publicKey string) string {
 	d := sha3.NewLegacyKeccak256()
 	publicKeyBytes, err := hex.DecodeString(publicKey)
 	if err != nil {
-		panic(err)
+		return ""
 	}
 	d.Write(publicKeyBytes)
 	hash := d.Sum(nil)
 	address := hex.EncodeToString(hash[len(hash)-20:])
-	fmt.Printf("Public Address: %s \n", address)
+	// fmt.Printf("Public Address: %s \n", address)
 	return address
 }
 
@@ -134,4 +136,44 @@ func encodeEIP55(address string) string {
 	}
 	fmt.Printf("EIP-55 encoded address:%s\n", string(addressRune55))
 	return string(addressRune55)
+}
+
+func generateWithPrefix(prefix string) {
+	/*
+		Math behind it :
+		Probability of a given character occuring at any place = 1/16
+		Hence probability that a given prefix of length 'n' will occur is (1/16)^n.
+		(being no contraint on number of occurences & other places)
+		Thus, mathematically speaking, longer the prefix, longer will* be the waiting time.
+
+		*Note: In the end this is just some probability, you might get the required prefix in
+				first attempt or maybe an eternity later :)
+	*/
+
+	startTime := time.Now()
+	length := len(prefix)
+	h, m, s := startTime.Clock()
+	fmt.Printf("Prefix: %s\nStart time: %d:%d:%d\n", prefix, h, m, s)
+	for {
+		privateKey := generatePrivateKey()
+		if privateKey != nil {
+			publicKey := generatePublicKeyFromPrivateKey(privateKey)
+			if publicKey != "" {
+				address := generateAddressFromPublicKey(publicKey)
+				if address != "" {
+					if address[:length] == prefix {
+						privateKeyHex := make([]byte, hex.EncodedLen(len(privateKey)))
+						hex.Encode(privateKeyHex, privateKey)
+						fmt.Printf("EUREKA! EUREKA! \nPrivate key: %s \nPublic key: %s \nAddress: %s \n", privateKeyHex, publicKey, address)
+						break
+					}
+				}
+			}
+		}
+	}
+	finishTime := time.Now()
+	h, m, s = finishTime.Clock()
+	fmt.Printf("Finish time: %d:%d:%d \n", h, m, s)
+	timeTaken := finishTime.Sub(startTime)
+	fmt.Printf("Time elapsed : %s\n", timeTaken.String())
 }
