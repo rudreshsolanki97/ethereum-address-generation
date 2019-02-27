@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/hex"
 	"fmt"
-	"log"
 	"math/rand"
 	"strings"
 	"time"
@@ -29,64 +28,11 @@ Step 6 : address = last 20 bytes of hash bytes slice.
 */
 
 func main() {
-	newSource := rand.NewSource(time.Now().UnixNano())
-	newRand := rand.New(newSource)
-	privateKey := make([]byte, 32)
-	_, err := newRand.Read(privateKey)
-	if err != nil {
-		log.Fatalf("Error in generating private key: %v", err)
-		return
-	}
-
-	privateKeyHex := make([]byte, hex.EncodedLen(len(privateKey)))
-	bitCurve := secp256k1.S256()
-	x, y := bitCurve.ScalarBaseMult(privateKey)
-	hex.Encode(privateKeyHex, privateKey)
-	fmt.Printf("Private Key generated: %s \n\n", privateKeyHex)
-
-	hexX := fmt.Sprintf("%x", x)
-	hexY := fmt.Sprintf("%x", y)
-	publicKey := hexX + hexY
-	fmt.Printf("X: %s\n", hexX)
-	fmt.Printf("Y: %s\n", hexY)
-	fmt.Printf("Public Key: %s\n\n", publicKey)
-
-	d := sha3.NewLegacyKeccak256()
-	publicKeyBytes, err := hex.DecodeString(publicKey)
-	if err != nil {
-		panic(err)
-	}
-	d.Write(publicKeyBytes)
-	hash := d.Sum(nil)
-	hashString := hex.EncodeToString(hash)
-	fmt.Printf("Keccak256 hash: %s\n", hashString)
-
-	address := hex.EncodeToString(hash[len(hash)-20:])
-	fmt.Printf("Address of Public Key: %s \n", address)
-
-	d = sha3.NewLegacyKeccak256()
-	d.Write([]byte(address))
-	addressHash := d.Sum(nil)
-	addressHashString := hex.EncodeToString(addressHash)
-	fmt.Printf("Address Keccak Hash :  %s\n", addressHashString)
-	addressHashRune := []rune(addressHashString)
-	addressRune := []rune(address)
-	addressRune55 := []rune{}
-	for i, val := range addressRune {
-		value := 0
-		if unicode.IsLetter(addressHashRune[i]) {
-			value = int(addressHashRune[i]) - 87
-		} else {
-			value = int(addressHashRune[i]) - 48
-		}
-		if value >= 8 {
-			addressRune55 = append(addressRune55, []rune(strings.ToUpper(string(val)))[0])
-		} else {
-			addressRune55 = append(addressRune55, val)
-		}
-	}
-	fmt.Printf("EIP-55 encoded address:%s\n", string(addressRune55))
-	fmt.Printf("Is a valid EIP-55: %t\n", isValidAddress(string(addressRune55)))
+	privateKey := generatePrivateKey()
+	publicKey := generatePublicKeyFromPrivateKey(privateKey)
+	address := generateAddressFromPublicKey(publicKey)
+	address55 := encodeEIP55(address)
+	fmt.Printf("Is address valid: %t\n", isValidAddress(address55))
 }
 
 func isValidAddress(address string) bool {
@@ -100,7 +46,7 @@ func isValidAddress(address string) bool {
 			valueHash = int(addressHashRune[i]) - 87
 		} else {
 			valueHash = int(addressHashRune[i]) - 48
-		} // only concerned with letters
+		}
 		if unicode.IsLetter(val) {
 			if unicode.IsUpper(val) {
 				if valueHash >= 8 {
@@ -122,4 +68,70 @@ func isValidAddress(address string) bool {
 		}
 	}
 	return true
+}
+
+func generatePrivateKey() []byte {
+	newSource := rand.NewSource(time.Now().UnixNano())
+	newRand := rand.New(newSource)
+	privateKey := make([]byte, 32)
+	_, err := newRand.Read(privateKey)
+	if err != nil {
+		panic(err)
+	}
+	privateKeyHex := make([]byte, hex.EncodedLen(len(privateKey)))
+	hex.Encode(privateKeyHex, privateKey)
+	fmt.Printf("Private Key generated: %s \n\n", privateKeyHex)
+	return privateKey
+}
+
+func generatePublicKeyFromPrivateKey(privateKey []byte) string {
+	bitCurve := secp256k1.S256()
+	x, y := bitCurve.ScalarBaseMult(privateKey)
+
+	hexX := fmt.Sprintf("%x", x)
+	hexY := fmt.Sprintf("%x", y)
+	publicKey := hexX + hexY
+	fmt.Printf("X: %s\n", hexX)
+	fmt.Printf("Y: %s\n", hexY)
+	fmt.Printf("Public Key: %s\n\n", publicKey)
+	return publicKey
+}
+
+func generateAddressFromPublicKey(publicKey string) string {
+	d := sha3.NewLegacyKeccak256()
+	publicKeyBytes, err := hex.DecodeString(publicKey)
+	if err != nil {
+		panic(err)
+	}
+	d.Write(publicKeyBytes)
+	hash := d.Sum(nil)
+	address := hex.EncodeToString(hash[len(hash)-20:])
+	fmt.Printf("Public Address: %s \n", address)
+	return address
+}
+
+func encodeEIP55(address string) string {
+	d := sha3.NewLegacyKeccak256()
+	d.Write([]byte(address))
+	addressHash := d.Sum(nil)
+	addressHashString := hex.EncodeToString(addressHash)
+	fmt.Printf("Keccak256 Hash of address:  %s\n", addressHashString)
+	addressHashRune := []rune(addressHashString)
+	addressRune := []rune(address)
+	addressRune55 := []rune{}
+	for i, val := range addressRune {
+		value := 0
+		if unicode.IsLetter(addressHashRune[i]) {
+			value = int(addressHashRune[i]) - 87
+		} else {
+			value = int(addressHashRune[i]) - 48
+		}
+		if value >= 8 {
+			addressRune55 = append(addressRune55, []rune(strings.ToUpper(string(val)))[0])
+		} else {
+			addressRune55 = append(addressRune55, val)
+		}
+	}
+	fmt.Printf("EIP-55 encoded address:%s\n", string(addressRune55))
+	return string(addressRune55)
 }
