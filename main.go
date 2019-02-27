@@ -74,7 +74,7 @@ func main() {
 	addressRune55 := []rune{}
 	for i, val := range addressRune {
 		value := 0
-		if unicode.IsLetter(val) {
+		if unicode.IsLetter(addressHashRune[i]) {
 			value = int(addressHashRune[i]) - 87
 		} else {
 			value = int(addressHashRune[i]) - 48
@@ -86,4 +86,40 @@ func main() {
 		}
 	}
 	fmt.Printf("EIP-55 encoded address:%s\n", string(addressRune55))
+	fmt.Printf("Is a valid EIP-55: %t\n", isValidAddress(string(addressRune55)))
+}
+
+func isValidAddress(address string) bool {
+	d := sha3.NewLegacyKeccak256()
+	d.Write([]byte(strings.ToLower(address)))
+	addressHashString := hex.EncodeToString(d.Sum(nil))
+	addressHashRune := []rune(addressHashString)
+	for i, val := range address {
+		var valueHash int
+		if unicode.IsLetter(addressHashRune[i]) {
+			valueHash = int(addressHashRune[i]) - 87
+		} else {
+			valueHash = int(addressHashRune[i]) - 48
+		} // only concerned with letters
+		if unicode.IsLetter(val) {
+			if unicode.IsUpper(val) {
+				if valueHash >= 8 {
+					continue
+				} else {
+					fmt.Printf("Big Address: %s Hash: %s \n", string(val), string(valueHash))
+					return false
+				}
+			} else {
+				if valueHash < 8 {
+					continue
+				} else {
+					fmt.Printf("Small Address: %s Hash: %s \n", string(val), string(valueHash))
+					return false
+				}
+			}
+		} else {
+			continue
+		}
+	}
+	return true
 }
