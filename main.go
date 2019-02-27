@@ -33,8 +33,8 @@ func main() {
 	// address := generateAddressFromPublicKey(publicKey)
 	// address55 := encodeEIP55(address)
 	// fmt.Printf("Is address valid: %t\n", isValidAddress(address55))
-	prefix := "abcd"
-	generateWithPrefix(prefix)
+	// prefix := "abcd"
+	// generateWithPrefix(prefix)
 }
 
 func isValidAddress(address string) bool {
