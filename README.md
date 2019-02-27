@@ -3,6 +3,6 @@ Repository that demonstrates generation of an ethereum address from a private ke
 
 ## To do tasks  
 
-- [x] Add EIP-55 encoding 
-- [ ] EIP encoding verification
+- [x] Add EIP-55 encoding  
+- [x] EIP encoding verification
 - [ ] Break down main func into different funcs   
