@@ -79,7 +79,7 @@ func main() {
 		} else {
 			value = int(addressHashRune[i]) - 48
 		}
-		if value > 9 {
+		if value >= 8 {
 			addressRune55 = append(addressRune55, []rune(strings.ToUpper(string(val)))[0])
 		} else {
 			addressRune55 = append(addressRune55, val)
