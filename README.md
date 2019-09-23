@@ -2,7 +2,7 @@
 
 Repository that demonstrates generation of an ethereum address from a private key.
 Change the main func as per your requirement by commenting / uncommneting function calls.  
-By defaut all calls are commented.  
+By default all calls are commented.  
 To change prefix update the prefix variable in main func.  
 
 ## To do tasks  
